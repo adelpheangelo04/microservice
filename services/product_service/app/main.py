@@ -1,11 +1,13 @@
 from fastapi import FastAPI
-from  api import routes
-from db import database
-from models import produit
+from app.api.routes import router
+from app.db.database import Base, engine
+from app.models.produit import Produit
 
+# Création des tables dans la base SQLite
+Base.metadata.create_all(bind=engine)
+print("✅ Base de données SQLite initialisée avec succès.")
+print("✅ Toutes les tables ont été créées.")
+print("➡ Fichier de base de données généré : product.db")
 
-produit.Base.metadata.create_all(bind=database.engine)
-print("✅ Tables créées avec succès.")
-
-app = FastAPI(title="Produit microsercice")
-app.include_router(routes.router)
+app = FastAPI(title="Produit Microservice")
+app.include_router(router)

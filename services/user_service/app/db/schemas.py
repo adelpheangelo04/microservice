@@ -12,7 +12,7 @@ class UserLogin(BaseModel):
     mot_de_passe: str
 
 class UserOut(BaseModel):
-    id: uuid.UUID
+    id: str
     nom: str
     email: EmailStr
     role: str
