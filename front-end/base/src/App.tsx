@@ -3,6 +3,15 @@ import Register from './pages/Register.tsx';
 import Login from './pages/Login.tsx';
 import Home from './pages/Home.tsx';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import TelephonesPage from './pages/TelephonesPage';
+import LaptopsPage from './pages/LaptopsPage.tsx';
+import AudioPage from './pages/AudioPage.tsx';
+import { CartProvider } from './context/CartContext'; // Importez le CartProvider
+import CartPage from './pages/CartPage.tsx';
+import CheckoutPage from './pages/CheckoutPage.tsx';
+import OrderConfirmation from './pages/OrderConfirmation.tsx';
+import UserOrders from './pages/UserOrders.tsx';
+
 
 function AppContent() {
   const { user } = useAuth();
@@ -12,6 +21,13 @@ function AppContent() {
       <Route path="/register" element={user ? <Navigate to="/" /> : <Register />} />
       <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
       <Route path="/" element={user ? <Home /> : <Navigate to="/login" />} />
+      <Route path="/telephones" element={<TelephonesPage />} />
+      <Route path="/laptops" element={<LaptopsPage/>} />
+      <Route path="/audio" element={<AudioPage/>} />
+      <Route path="/cart" element={<CartPage/>} />
+      <Route path="/checkout" element={<CheckoutPage/>} />
+      <Route path="/order-confirmation" element={<OrderConfirmation/>} />
+      <Route path="/user-orders" element={<UserOrders/>} />
     </Routes>
   )
 }
@@ -19,12 +35,13 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <Router>
-        <div className="min-h-screen w-full">
-          <AppContent />
-        </div>
-      </Router>
+      <CartProvider> {/* Ajoutez le CartProvider ici */}
+        <Router>
+          <div className="min-h-screen w-full">
+            <AppContent />
+          </div>
+        </Router>
+      </CartProvider>
     </AuthProvider>
   )
 }
-

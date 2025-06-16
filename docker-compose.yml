@@ -1,0 +1,134 @@
+version: '3.8'
+
+services:
+  # API Gateway
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "5000:5000"
+    depends_on:
+      - order-service
+      - product-service
+      - user-service
+      - payment-service
+      - consul
+    environment:
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+    networks:
+      - microservice-network
+
+  # Services
+  order-service:
+    build: ./services/order_service
+    ports:
+      - "5001:5001"
+    depends_on:
+      - kafka
+      - consul
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+    networks:
+      - microservice-network
+
+  product-service:
+    build: ./services/product_service
+    ports:
+      - "5002:5002"
+    depends_on:
+      - kafka
+      - consul
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+    networks:
+      - microservice-network
+
+  user-service:
+    build: ./services/user_service
+    ports:
+      - "5003:5003"
+    depends_on:
+      - kafka
+      - consul
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+    networks:
+      - microservice-network
+
+  payment-service:
+    build: ./services/payment_service
+    ports:
+      - "5004:5004"
+    depends_on:
+      - kafka
+      - consul
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+    networks:
+      - microservice-network
+
+  # Front-end
+  frontend:
+    build: ./front-end
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api-gateway
+    networks:
+      - microservice-network
+
+  # Infrastructure Services
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    ports:
+      - "9092:9092"
+    volumes:
+      - ./kafka/kafka-config.properties:/etc/kafka/kafka.properties
+      - ./kafka/init-topics.sh:/init-topics.sh
+    environment:
+      KAFKA_OPTS: "-Dlog4j.configuration=file:/etc/kafka/log4j.properties"
+    command: 
+      - bash
+      - -c
+      - |
+        /etc/confluent/docker/run &
+        sleep 30
+        /init-topics.sh
+        wait
+    depends_on:
+      - zookeeper
+    networks:
+      - microservice-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - microservice-network
+
+  consul:
+    image: consul:latest
+    ports:
+      - "8500:8500"
+      - "8600:8600/udp"
+    volumes:
+      - ./consul/config.json:/consul/config/config.json
+    command: 'agent -config-file=/consul/config/config.json'
+    networks:
+      - microservice-network
+
+networks:
+  microservice-network:
+    driver: bridge

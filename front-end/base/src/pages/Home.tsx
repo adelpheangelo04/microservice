@@ -2,10 +2,15 @@ import { useState, useEffect } from 'react';
 import ProductCard from '../components/ProductCard';
 import { useNavigate } from 'react-router-dom';
 import type { User } from '../types/user';
+import {api, type ProductResponse} from '../services/api';
+import MenuFloat from '../components/MenuFLoat';
 
 const Home = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [products, setProducts] = useState<ProductResponse[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
 
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
@@ -17,53 +22,70 @@ const Home = () => {
     }
   },[]);    
 
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await api.getProducts();
+        setProducts(res.data);
+        setError(null);
+      } catch (err: any) {
+        setError("Erreur lors du chargement des produits.");
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   
 
-  // Données de démonstration
-  const products = [
-    {
-      id: 1,
-      title: "Smartphone XYZ",
-      price: 699.99,
-      image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=500",
-      description: "Le dernier smartphone avec des fonctionnalités innovantes et un design élégant.",
-      isNew: true,
-      discount: 15,
-    },
-    {
-      id: 2,
-      title: "Laptop Pro",
-      price: 1299.99,
-      image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500",
-      description: "Un ordinateur portable puissant pour les professionnels et les créatifs.",
-      isNew: false,
-      discount: null,
-    },
-    {
-      id: 3,
-      title: "Casque Audio Premium",
-      price: 199.99,
-      image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500",
-      description: "Une expérience audio immersive avec notre casque haut de gamme.",
-      isNew: true,
-      discount: 10,
-    },
-    {
-      id: 4,
-      title: "Montre Connectée",
-      price: 249.99,
-      image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500",
-      description: "Suivez votre activité physique et restez connecté avec cette montre intelligente.",
-      isNew: false,
-      discount: 20,
-    }
-  ];
+  // // Données de démonstration
+  // const products = [
+  //   {
+  //     id: 1,
+  //     title: "Smartphone XYZ",
+  //     price: 699.99,
+  //     image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=500",
+  //     description: "Le dernier smartphone avec des fonctionnalités innovantes et un design élégant.",
+  //     isNew: true,
+  //     discount: 15,
+  //   },
+  //   {
+  //     id: 2,
+  //     title: "Laptop Pro",
+  //     price: 1299.99,
+  //     image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500",
+  //     description: "Un ordinateur portable puissant pour les professionnels et les créatifs.",
+  //     isNew: false,
+  //     discount: null,
+  //   },
+  //   {
+  //     id: 3,
+  //     title: "Casque Audio Premium",
+  //     price: 199.99,
+  //     image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500",
+  //     description: "Une expérience audio immersive avec notre casque haut de gamme.",
+  //     isNew: true,
+  //     discount: 10,
+  //   },
+  //   {
+  //     id: 4,
+  //     title: "Montre Connectée",
+  //     price: 249.99,
+  //     image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500",
+  //     description: "Suivez votre activité physique et restez connecté avec cette montre intelligente.",
+  //     isNew: false,
+  //     discount: 20,
+  //   }
+  // ];
 
   const categories = [
-    { name: 'Smartphones', icon: '📱' },
-    { name: 'Ordinateurs', icon: '💻' },
-    { name: 'Audio', icon: '🎧' },
-    { name: 'Accessoires', icon: '⌚' }
+    { name: 'Smartphones', icon: '📱', link: '/telephones' },
+    { name: 'Ordinateurs', icon: '💻',link: '/laptops' },
+    { name: 'Audio', icon: '🎧',link: '/audio' },
+    { name: 'Accessoires', icon: '⌚',link: '/accessoires' }
   ];
 
   const handleLogout = () => {
@@ -92,6 +114,7 @@ const Home = () => {
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
+      <MenuFloat />
       {/* Floating Theme Toggle */}
       <button 
         onClick={() => setDarkMode(!darkMode)}
@@ -164,7 +187,7 @@ const Home = () => {
             <div className="w-24 h-1 bg-gradient-to-r from-cyan-400 to-purple-500 mx-auto"></div>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 p-4">
             {products.map((product) => (
               <div 
                 key={product.id} 
@@ -172,8 +195,18 @@ const Home = () => {
               >
                 <div className="relative preserve-3d group-hover:rotate-y-10 transition-transform duration-500">
                   <ProductCard 
-                    {...product} 
+                    id={product.id}
+                    title={product.nom}
+                    price={product.promotion ? product.prix * (1 - product.promotion / 100) : product.prix}
+                    originalPrice={product.promotion ? product.prix : undefined}
+                    description={product.description}
+                    image={product.image_url}
                     darkMode={darkMode}
+                    isNew={product.est_nouveau}
+                    discount={product.promotion}
+                    rating={product.note}
+                    reviewCount={product.avis}
+                    stock={product.stock}
                     className={`${darkMode ? 'bg-gray-800/50 backdrop-blur-md border-gray-700' : 'bg-white/80 backdrop-blur-md border-gray-200'} border`}
                   />
                 </div>
@@ -193,11 +226,12 @@ const Home = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-4">
             {categories.map((category) => (
               <div
                 key={category.name}
                 className={`relative overflow-hidden rounded-2xl p-8 text-center transition-all duration-500 group cursor-pointer ${darkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-gray-50'} shadow-lg hover:shadow-xl`}
+                onClick={() => navigate(category.link)}
               >
                 <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-indigo-500/10 group-hover:bg-indigo-500/20 transition-all duration-700"></div>
                 <div className="relative z-10">
@@ -236,109 +270,10 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Newsletter Section with Floating Input */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className={`max-w-2xl mx-auto rounded-2xl p-8 text-center ${darkMode ? 'bg-gray-800/50 backdrop-blur-md border-gray-700' : 'bg-white/80 backdrop-blur-md border-gray-200'} border shadow-lg`}>
-            <h2 className="text-3xl font-bold mb-4">Restez Connecté</h2>
-            <p className="mb-8 opacity-80">
-              Abonnez-vous pour recevoir nos dernières nouveautés et offres exclusives
-            </p>
-            
-            <div className="relative max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Votre email"
-                className={`w-full px-6 py-4 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all ${darkMode ? 'bg-gray-700 text-white placeholder-gray-400' : 'bg-white text-gray-900 placeholder-gray-500'} shadow-md hover:shadow-lg`}
-              />
-              <button className={`absolute right-2 top-2 px-4 py-2 rounded-full font-semibold bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:shadow-lg transition-all transform hover:scale-105`}>
-                S'inscrire
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Floating Cart Button */}
-      <div className="fixed bottom-8 right-8 z-50">
-        <button className={`p-4 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-110 ${darkMode ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
-          <span className="relative">
-            🛍️
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center">
-              3
-            </span>
-          </span>
-        </button>
-      </div>
 
-      {/* Global Styles */}
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-20px); }
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.8s ease-out forwards;
-        }
-        .animate-fadeIn.delay-100 {
-          animation-delay: 0.2s;
-        }
-        .animate-fadeIn.delay-200 {
-          animation-delay: 0.4s;
-        }
-        .perspective-1000 {
-          perspective: 1000px;
-        }
-        .preserve-3d {
-          transform-style: preserve-3d;
-        }
-        .rotate-y-10 {
-          transform: rotateY(10deg);
-        }
-        .glitch-text {
-          position: relative;
-        }
-        .glitch-text::before, .glitch-text::after {
-          content: attr(data-text);
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          opacity: 0.8;
-        }
-        .glitch-text::before {
-          color: #0ff;
-          z-index: -1;
-          animation: glitch-effect 3s infinite;
-        }
-        .glitch-text::after {
-          color: #f0f;
-          z-index: -2;
-          animation: glitch-effect 2s infinite reverse;
-        }
-        @keyframes glitch-effect {
-          0% { transform: translate(0); }
-          20% { transform: translate(-3px, 3px); }
-          40% { transform: translate(-3px, -3px); }
-          60% { transform: translate(3px, 3px); }
-          80% { transform: translate(3px, -3px); }
-          100% { transform: translate(0); }
-        }
-        .bg-grid-pattern {
-          background-image: 
-            linear-gradient(to right, rgba(255,255,255,0.3) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(255,255,255,0.3) 1px, transparent 1px);
-          background-size: 20px 20px;
-        }
-      `}</style>
+
+
     </div>
   );
 };
