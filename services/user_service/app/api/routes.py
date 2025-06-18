@@ -59,6 +59,26 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
         logger.error(f"Error during login: {e}")
         raise HTTPException(status_code=500, detail="Une erreur est survenue lors de la connexion")
 
+
+
+@router.post("/login_admin")
+def login_admin(user: schemas.UserLogin, db: Session = Depends(get_db)):
+    try:
+        db_user = db.query(models.User).filter(models.User.email == user.email).first()
+        if not db_user or not pwd_context.verify(user.mot_de_passe, db_user.mot_de_passe):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Identifiant ou mot de passe invalides")
+
+        if(db_user.role != 'admin'):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Vous n'etes pas autoriser a vous connecter")
+
+        return {"message": "Connexion admin réussie", "user_id": db_user.id}
+
+    except Exception as e:
+        logger.error(f"Error during login: {e}")
+        raise HTTPException(status_code=500, detail="Une erreur est survenue lors de la connexion")
+
+
+
 @router.get("/me/{user_id}", response_model=schemas.UserOut)
 def get_profile(user_id: str, db: Session = Depends(get_db)):
     try:

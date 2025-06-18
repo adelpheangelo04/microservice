@@ -26,6 +26,14 @@ const CheckoutPage = () => {
   const [loading, setLoading] = useState(true);
   const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState<string>("");
+  const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
+  const [paymentDetails, setPaymentDetails] = useState({
+    phone: '',
+    cardNumber: '',
+    expiryDate: '',
+    cvv: ''
+  });
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   useEffect(() => {
     if (!state?.orderId) {
@@ -48,21 +56,216 @@ const CheckoutPage = () => {
     fetchOrder();
   }, [state, navigate]);
 
-  const handlePayment = async (paymentMethod: string) => {
-    if (!order) return;
+  const handlePaymentMethodSelect = (method: string) => {
+    setSelectedPayment(method);
+    setError("");
+  };
 
-    setLoading(true);
+  const handlePaymentDetailsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setPaymentDetails(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const simulatePaymentProcessing = async () => {
+    // Simulation d'un délai aléatoire entre 1.5 et 3 secondes
+    const delay = Math.floor(Math.random() * 1500) + 1500;
+    return new Promise(resolve => setTimeout(resolve, delay));
+  };
+
+  const handlePaymentSubmit = async () => {
+    if (!order || !selectedPayment) return;
+
+    // Validation des champs
+    if (selectedPayment === 'mobile_money' && !paymentDetails.phone) {
+      setError("Veuillez entrer votre numéro de téléphone");
+      return;
+    }
+
+    if (selectedPayment === 'credit_card') {
+      if (!paymentDetails.cardNumber || !paymentDetails.expiryDate || !paymentDetails.cvv) {
+        setError("Veuillez remplir tous les champs de la carte");
+        return;
+      }
+      if (paymentDetails.cardNumber.replace(/\s/g, '').length !== 16) {
+        setError("Le numéro de carte doit contenir 16 chiffres");
+        return;
+      }
+    }
+
+    setError("");
+    setIsProcessingPayment(true);
+
     try {
-      await api.updateCommandeStatut(order.id, "validee");
+      // Simulation du traitement de paiement
+      await simulatePaymentProcessing();
+      
+      // Mise à jour du statut de la commande
+      await api.updateCommandeStatut(order.id, "payee");
+      
+      // Vider le panier
       clearCart();
+      
+      // Redirection vers la page de confirmation
       navigate('/order-confirmation', {
-        state: { orderId: order.id, paymentMethod, orderTotal: order.total }
+        state: { 
+          orderId: order.id, 
+          paymentMethod: selectedPayment, 
+          orderTotal: order.total 
+        }
       });
     } catch (error) {
       console.error("Erreur lors du paiement :", error);
-      setError("Une erreur est survenue lors du paiement.");
+      setError("Une erreur est survenue lors du traitement du paiement.");
     } finally {
-      setLoading(false);
+      setIsProcessingPayment(false);
+    }
+  };
+
+  const renderPaymentFields = () => {
+    switch (selectedPayment) {
+      case 'mobile_money':
+        return (
+          <div className="mt-6 space-y-4">
+            <h3 className="text-lg font-semibold dark:text-gray-200">
+              Détails Mobile Money
+            </h3>
+            <div>
+              <label className="block text-sm font-medium dark:text-gray-300 mb-1">
+                Numéro de téléphone
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                value={paymentDetails.phone}
+                onChange={handlePaymentDetailsChange}
+                placeholder="Ex: 771234567"
+                className="w-full p-3 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-200"
+                disabled={isProcessingPayment}
+              />
+            </div>
+            <button
+              onClick={handlePaymentSubmit}
+              disabled={isProcessingPayment}
+              className="w-full py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition flex justify-center items-center"
+            >
+              {isProcessingPayment ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Traitement en cours...
+                </>
+              ) : (
+                "Confirmer le paiement"
+              )}
+            </button>
+          </div>
+        );
+      
+      case 'credit_card':
+        return (
+          <div className="mt-6 space-y-4">
+            <h3 className="text-lg font-semibold dark:text-gray-200">
+              Détails de la carte
+            </h3>
+            <div>
+              <label className="block text-sm font-medium dark:text-gray-300 mb-1">
+                Numéro de carte
+              </label>
+              <input
+                type="text"
+                name="cardNumber"
+                value={paymentDetails.cardNumber}
+                onChange={handlePaymentDetailsChange}
+                placeholder="1234 5678 9012 3456"
+                className="w-full p-3 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-200"
+                disabled={isProcessingPayment}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium dark:text-gray-300 mb-1">
+                  Date d'expiration
+                </label>
+                <input
+                  type="text"
+                  name="expiryDate"
+                  value={paymentDetails.expiryDate}
+                  onChange={handlePaymentDetailsChange}
+                  placeholder="MM/AA"
+                  className="w-full p-3 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-200"
+                  disabled={isProcessingPayment}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium dark:text-gray-300 mb-1">
+                  CVV
+                </label>
+                <input
+                  type="text"
+                  name="cvv"
+                  value={paymentDetails.cvv}
+                  onChange={handlePaymentDetailsChange}
+                  placeholder="123"
+                  className="w-full p-3 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-200"
+                  disabled={isProcessingPayment}
+                />
+              </div>
+            </div>
+            <button
+              onClick={handlePaymentSubmit}
+              disabled={isProcessingPayment}
+              className="w-full py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition flex justify-center items-center"
+            >
+              {isProcessingPayment ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Traitement en cours...
+                </>
+              ) : (
+                "Payer maintenant"
+              )}
+            </button>
+          </div>
+        );
+      
+      case 'cash':
+        return (
+          <div className="mt-6">
+            <div className="bg-yellow-100 dark:bg-yellow-900/30 p-4 rounded-lg mb-4">
+              <p className="text-yellow-800 dark:text-yellow-200">
+                Vous paierez en espèces lors de la livraison.
+              </p>
+            </div>
+            <button
+              onClick={handlePaymentSubmit}
+              disabled={isProcessingPayment}
+              className="w-full py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition flex justify-center items-center"
+            >
+              {isProcessingPayment ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Confirmation en cours...
+                </>
+              ) : (
+                "Confirmer la commande"
+              )}
+            </button>
+          </div>
+        );
+      
+      default:
+        return null;
     }
   };
 
@@ -71,7 +274,7 @@ const CheckoutPage = () => {
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900">
         <MenuFloat />
         <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-500 mb-4"></div>
-        <p className="dark:text-gray-200 font-semibold">Chargement...</p>
+        <p className="dark:text-gray-200 font-semibold">Chargement de la commande...</p>
       </div>
     );
   }
@@ -80,11 +283,11 @@ const CheckoutPage = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900">
         <MenuFloat />
-        <div className="bg-red-100 dark:bg-red-900 p-6 rounded-md shadow-md">
+        <div className="bg-red-100 dark:bg-red-900 p-6 rounded-md shadow-md max-w-md w-full">
           <p className="text-red-500 dark:text-red-400 mb-4">{error}</p>
           <button
             onClick={() => navigate('/cart')}
-            className="px-4 py-2 bg-red-600 dark:bg-red-500 text-gray-100 font-semibold rounded-md hover:bg-red-500 dark:hover:bg-red-400 transition"
+            className="px-4 py-2 bg-red-600 dark:bg-red-500 text-gray-100 font-semibold rounded-md hover:bg-red-500 dark:hover:bg-red-400 transition w-full"
           >
             Retour au panier
           </button>
@@ -97,13 +300,13 @@ const CheckoutPage = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900">
         <MenuFloat />
-        <div className="p-6 rounded-md shadow-md">
+        <div className="p-6 rounded-md shadow-md max-w-md w-full text-center">
           <p className="dark:text-gray-200 mb-4">
             Commande introuvable.
           </p>
           <button
             onClick={() => navigate('/cart')}
-            className="px-4 py-2 bg-indigo-600 dark:bg-indigo-500 text-gray-100 font-semibold rounded-md hover:bg-indigo-500 dark:hover:bg-indigo-400 transition"
+            className="px-4 py-2 bg-indigo-600 dark:bg-indigo-500 text-gray-100 font-semibold rounded-md hover:bg-indigo-500 dark:hover:bg-indigo-400 transition w-full"
           >
             Retour au panier
           </button>
@@ -137,9 +340,13 @@ const CheckoutPage = () => {
                  ].map((item) => (
                    <button
                      key={item.value}
-                     onClick={() => handlePayment(item.value)}
-                     disabled={loading}
-                     className="w-full p-4 border dark:border-gray-700 rounded-lg flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                     onClick={() => handlePaymentMethodSelect(item.value)}
+                     disabled={isProcessingPayment}
+                     className={`w-full p-4 border dark:border-gray-700 rounded-lg flex items-center justify-between transition ${
+                       selectedPayment === item.value 
+                         ? 'bg-indigo-100 dark:bg-indigo-900/30 border-indigo-300 dark:border-indigo-700'
+                         : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                     } ${isProcessingPayment ? 'opacity-50 cursor-not-allowed' : ''}`}
                    >
                      <div className="flex items-center">
                        <span className="text-2xl mr-3">{item.icon}</span>
@@ -152,6 +359,15 @@ const CheckoutPage = () => {
                    </button>
                  ))}
                </div>
+
+               {/* Champs de paiement dynamiques */}
+               {selectedPayment && renderPaymentFields()}
+
+               {error && (
+                 <div className="mt-4 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 p-3 rounded-lg">
+                   {error}
+                 </div>
+               )}
             </div>
 
             {/* Récapitulatif */}

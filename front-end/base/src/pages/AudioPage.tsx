@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ProductCard from '../components/ProductCard';
 import MenuFloat from '../components/MenuFLoat';
+import { api, type ProductResponse } from '../services/api';
 
 const AudioPage = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -9,83 +10,16 @@ const AudioPage = () => {
   const [sort, setSort] = useState('pertinence');
   
   // Données de test pour les téléphones
-  const telephones = [
-    {
-      id: 'tel_001',
-      nom: 'Smartphone Premium X',
-      description: 'Écran 6.7" AMOLED 120Hz, triple caméra 108MP, batterie 5000mAh',
-      prix: 899.99,
-      promotion: 15,
-      image_url: 'https://images.unsplash.com/photo-1610792516307-ea5acd9c3b00',
-      est_nouveau: true,
-      note: 4.7,
-      avis: 215,
-      stock: 42,
-      caracteristiques: [
-        "Écran 6.7\" AMOLED",
-        "Processeur Snapdragon 8 Gen 2",
-        "128Go de stockage",
-        "Triple caméra 108MP"
-      ]
-    },
-    {
-      id: 'tel_002',
-      nom: 'Phone Max Pro',
-      description: 'Performances extrêmes avec écran 120Hz et charge ultra-rapide',
-      prix: 749.99,
-      promotion: null,
-      image_url: 'https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb',
-      est_nouveau: false,
-      note: 4.5,
-      avis: 189,
-      stock: 25,
-      caracteristiques: [
-        "Écran 6.5\" 120Hz",
-        "Charge 65W",
-        "Double caméra 50MP",
-        "Batterie 4500mAh"
-      ]
-    },
-    {
-      id: 'tel_003',
-      nom: 'Compact Z3',
-      description: 'Design compact avec toutes les fonctionnalités premium',
-      prix: 659.99,
-      promotion: 20,
-      image_url: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd',
-      est_nouveau: true,
-      note: 4.3,
-      avis: 97,
-      stock: 0, // Rupture de stock
-      caracteristiques: [
-        "Écran 5.9\" Full HD",
-        "Processeur haut de gamme",
-        "Appareil photo nocturne",
-        "IP68 étanche"
-      ]
-    },
-    {
-      id: 'tel_004',
-      nom: 'Gamer Edition',
-      description: 'Optimisé pour le gaming avec refroidissement actif',
-      prix: 799.99,
-      promotion: 10,
-      image_url: 'https://images.unsplash.com/photo-1605170439002-90845e8c0137',
-      est_nouveau: false,
-      note: 4.8,
-      avis: 312,
-      stock: 18,
-      caracteristiques: [
-        "Écran 144Hz",
-        "Refroidissement liquide",
-        "Batterie 6000mAh",
-        "4 haut-parleurs"
-      ]
-    },
-  ];
+  const [audio, setAudio] = useState<ProductResponse[]>([]);
+
+  useEffect(() => {
+    api.getProductsByCategory('audio').then((response) => {
+      setAudio(response.data);
+    });
+  }, []);
 
   // Filtrage :
-  let processed = telephones.filter((phone) => {
+  let processed = audio.filter((phone) => {
     if (filter === 'new') return phone.est_nouveau;
     if (filter === 'promo') return phone.promotion;
     if (filter === 'instock') return phone.stock > 0;

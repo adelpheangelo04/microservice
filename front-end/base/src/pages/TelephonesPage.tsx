@@ -12,7 +12,7 @@ const TelephonesPage = () => {
   const [telephones, setTelephones] = useState<ProductResponse[]>([]);
 
   useEffect(() => {
-    api.getPoductByCategorie('smartphone').then((response) => {
+    api.getProductsByCategory('smartphone').then((response) => {
       setTelephones(response.data);
     });
   }, []);

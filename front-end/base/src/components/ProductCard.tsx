@@ -1,6 +1,7 @@
 import type { FC } from 'react';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../hooks/useTheme';
+import { getImageUrl } from '../services/api';
 
 interface ProductCardProps {
   id: string;
@@ -71,9 +72,9 @@ const ProductCard: FC<ProductCardProps> = ({
 
       {/* Image */}
       <div className="relative h-64 w-full overflow-hidden">
-        <img
-          src={image || '/placeholder-product.jpg'}
-          alt={title}
+        <img    
+          src={getImageUrl(image)}
+          alt={getImageUrl(image)}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
         <div className={`absolute inset-0 bg-gradient-to-t ${darkMode ? 'from-black/80' : 'from-black/60'} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
@@ -88,6 +89,9 @@ const ProductCard: FC<ProductCardProps> = ({
           </button>
         </div>
       </div>
+
+      
+
 
       {/* Product Info */}
       <div className="p-6">

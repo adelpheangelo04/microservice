@@ -11,6 +11,9 @@ import CartPage from './pages/CartPage.tsx';
 import CheckoutPage from './pages/CheckoutPage.tsx';
 import OrderConfirmation from './pages/OrderConfirmation.tsx';
 import UserOrders from './pages/UserOrders.tsx';
+import AdminLogin from './pages/admin/Login.tsx';
+import Dashboard from './pages/admin/Dashboard.tsx';
+import AccessoiresPage from './pages/AccessoiresPage.tsx';
 
 
 function AppContent() {
@@ -24,10 +27,13 @@ function AppContent() {
       <Route path="/telephones" element={<TelephonesPage />} />
       <Route path="/laptops" element={<LaptopsPage/>} />
       <Route path="/audio" element={<AudioPage/>} />
+      <Route path="/accessoires" element={<AccessoiresPage/>} />
       <Route path="/cart" element={<CartPage/>} />
       <Route path="/checkout" element={<CheckoutPage/>} />
       <Route path="/order-confirmation" element={<OrderConfirmation/>} />
       <Route path="/user-orders" element={<UserOrders/>} />
+      <Route path="/admin/login" element={<AdminLogin/>} />
+      <Route path="/admin/dashboard" element={<Dashboard/>} />
     </Routes>
   )
 }

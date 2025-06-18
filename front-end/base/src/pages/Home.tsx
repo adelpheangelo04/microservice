@@ -3,7 +3,7 @@ import ProductCard from '../components/ProductCard';
 import { useNavigate } from 'react-router-dom';
 import type { User } from '../types/user';
 import {api, type ProductResponse} from '../services/api';
-import MenuFloat from '../components/MenuFLoat';
+import MenuFloat from '../components/MenuFLoat';``
 
 const Home = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -256,7 +256,7 @@ const Home = () => {
           <div className="max-w-4xl mx-auto text-center">
             <div className="relative inline-block">
               <h2 className="text-4xl md:text-5xl font-bold mb-6 glitch-text" data-text="SOLDES D'ÉTÉ">
-                SOLDES D'ÉTÉ
+                SOLDES DE VACANCES
               </h2>
             </div>
             <p className="text-xl mb-8 opacity-90">

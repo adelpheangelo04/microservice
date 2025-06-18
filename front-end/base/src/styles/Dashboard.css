@@ -1,0 +1,42 @@
+.dashboard-container {
+  padding: 24px;
+  background-color: #f8f9fa;
+}
+
+.stat-card {
+  transition: transform 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.chart-container {
+  background-color: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.product-table {
+  margin-top: 24px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.dialog-form {
+  min-width: 400px;
+}
+
+@media (max-width: 600px) {
+  .dashboard-container {
+    padding: 16px;
+  }
+  
+  .dialog-form {
+    min-width: 100%;
+  }
+} 

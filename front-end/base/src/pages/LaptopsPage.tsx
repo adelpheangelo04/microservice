@@ -13,7 +13,7 @@ const LaptopsPage = () => {
   const [laptops, setLaptops] = useState<ProductResponse[]>([]);
 
   useEffect(() => {
-    api.getPoductByCategorie('laptop').then((response) => {
+    api.getProductsByCategory('laptop').then((response) => {
       setLaptops(response.data);
     });
   }, []);

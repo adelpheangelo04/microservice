@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ProductCard from '../components/ProductCard';
 import MenuFloat from '../components/MenuFLoat';
+import { api, type ProductResponse } from '../services/api';
 
 const AccessoiresPage = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -9,86 +10,20 @@ const AccessoiresPage = () => {
   const [sort, setSort] = useState('pertinence');
   
   // Données de test pour les téléphones
-  const telephones = [
-    {
-      id: 'tel_001',
-      nom: 'Smartphone Premium X',
-      description: 'Écran 6.7" AMOLED 120Hz, triple caméra 108MP, batterie 5000mAh',
-      prix: 899.99,
-      promotion: 15,
-      image_url: 'https://images.unsplash.com/photo-1610792516307-ea5acd9c3b00',
-      est_nouveau: true,
-      note: 4.7,
-      avis: 215,
-      stock: 42,
-      caracteristiques: [
-        "Écran 6.7\" AMOLED",
-        "Processeur Snapdragon 8 Gen 2",
-        "128Go de stockage",
-        "Triple caméra 108MP"
-      ]
-    },
-    {
-      id: 'tel_002',
-      nom: 'Phone Max Pro',
-      description: 'Performances extrêmes avec écran 120Hz et charge ultra-rapide',
-      prix: 749.99,
-      promotion: null,
-      image_url: 'https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb',
-      est_nouveau: false,
-      note: 4.5,
-      avis: 189,
-      stock: 25,
-      caracteristiques: [
-        "Écran 6.5\" 120Hz",
-        "Charge 65W",
-        "Double caméra 50MP",
-        "Batterie 4500mAh"
-      ]
-    },
-    {
-      id: 'tel_003',
-      nom: 'Compact Z3',
-      description: 'Design compact avec toutes les fonctionnalités premium',
-      prix: 659.99,
-      promotion: 20,
-      image_url: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd',
-      est_nouveau: true,
-      note: 4.3,
-      avis: 97,
-      stock: 0, // Rupture de stock
-      caracteristiques: [
-        "Écran 5.9\" Full HD",
-        "Processeur haut de gamme",
-        "Appareil photo nocturne",
-        "IP68 étanche"
-      ]
-    },
-    {
-      id: 'tel_004',
-      nom: 'Gamer Edition',
-      description: 'Optimisé pour le gaming avec refroidissement actif',
-      prix: 799.99,
-      promotion: 10,
-      image_url: 'https://images.unsplash.com/photo-1605170439002-90845e8c0137',
-      est_nouveau: false,
-      note: 4.8,
-      avis: 312,
-      stock: 18,
-      caracteristiques: [
-        "Écran 144Hz",
-        "Refroidissement liquide",
-        "Batterie 6000mAh",
-        "4 haut-parleurs"
-      ]
-    },
-  ];
+  const [accessoires, setAccessoires] = useState<ProductResponse[]>([]);
+
+  useEffect(() => {
+    api.getProductsByCategory('accessoire').then((response) => {
+      setAccessoires(response.data);
+    });
+  }, []);
+
 
   // Filtrage :
-  let processed = telephones.filter((phone) => {
-    if (filter === 'new') return phone.est_nouveau;
-    if (filter === 'promo') return phone.promotion;
-    if (filter === 'instock') return phone.stock > 0;
+  let processed = accessoires.filter((accessoire) => {
+    if (filter === 'new') return accessoire.est_nouveau;
+    if (filter === 'promo') return accessoire.promotion;
+    if (filter === 'instock') return accessoire.stock > 0;
     return true;
   });
 
@@ -116,10 +51,10 @@ const AccessoiresPage = () => {
       <div className={`relative overflow-hidden ${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-indigo-600 to-purple-600'} text-white py-20`}>
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            Nos Smartphones
+            Nos Accessoires
           </h1>
           <p className="text-xl opacity-90 max-w-2xl mx-auto">
-            Découvrez notre sélection de téléphones haut de gamme aux meilleurs prix
+            Découvrez notre sélection d'accessoires haut de gamme aux meilleurs prix
           </p>
         </div>
       </div>
@@ -199,22 +134,22 @@ const AccessoiresPage = () => {
 
 <div className="container mx-auto px-4 pb-16">
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-    {processed.map((telephone) => (
-      <div key={telephone.id} className="group perspective-1000 hover:z-10 transition-all duration-300">
+    {processed.map((accessoire) => (
+      <div key={accessoire.id} className="group perspective-1000 hover:z-10 transition-all duration-300">
         <div className="relative preserve-3d group-hover:rotate-y-10 transition-transform duration-500">
           <ProductCard 
-            id={telephone.id}
-            title={telephone.nom}
-            price={telephone.promotion ? telephone.prix * (1 - telephone.promotion / 100) : telephone.prix}
-            originalPrice={telephone.promotion ? telephone.prix : undefined}
-            description={telephone.description}
-            image={telephone.image_url}
+            id={accessoire.id}
+            title={accessoire.nom}
+            price={accessoire.promotion ? accessoire.prix * (1 - accessoire.promotion / 100) : accessoire.prix}
+            originalPrice={accessoire.promotion ? accessoire.prix : undefined}
+            description={accessoire.description}
+            image={accessoire.image_url}
             darkMode={darkMode}
-            isNew={telephone.est_nouveau}
-            discount={telephone.promotion}
-            rating={telephone.note}
-            reviewCount={telephone.avis}
-            stock={telephone.stock}
+            isNew={accessoire.est_nouveau}
+            discount={accessoire.promotion}
+            rating={accessoire.note}
+            reviewCount={accessoire.avis}
+            stock={accessoire.stock}
             className={`${darkMode ? 'bg-gray-800/50 backdrop-blur-md border-gray-700' : 'bg-white/80 backdrop-blur-md border-gray-200'} border`}
           />
         </div>
@@ -231,7 +166,7 @@ const AccessoiresPage = () => {
           <div className={`max-w-3xl mx-auto rounded-2xl p-8 text-center ${darkMode ? 'bg-gray-800/50 backdrop-blur-md border-gray-700' : 'bg-white/80 backdrop-blur-md border-gray-200'} border shadow-lg`}>
             <h2 className="text-2xl font-bold mb-4">Ne manquez pas nos nouveautés</h2>
             <p className="mb-6 max-w-xl mx-auto">
-              Abonnez-vous à notre newsletter pour recevoir nos dernières offres sur les smartphones
+              Abonnez-vous à notre newsletter pour recevoir nos dernières offres sur les access
             </p>
             <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
               <input
