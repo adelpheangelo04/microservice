@@ -23,6 +23,7 @@ import {
 import { api } from '../../services/api';
 import type { ProductResponse, ProductUpdate } from '../../services/api';
 import ImageUpload from '../../components/ImageUpload';
+import MenuFloat from '../../components/MenuFLoat';
 
 // Enregistrement des composants Chart.js
 ChartJS.register(
@@ -57,7 +58,7 @@ const Dashboard: React.FC = () => {
     datasets: [
       {
         label: 'Ventes',
-        data: [12, 19, 3, 5, 2, 3],
+        data: [1, 2, 3, 5, 2, 3],
         borderColor: 'rgba(99, 102, 241, 1)',
         backgroundColor: 'rgba(99, 102, 241, 0.1)',
         tension: 0.4,
@@ -67,11 +68,11 @@ const Dashboard: React.FC = () => {
   };
 
   const categoryData = {
-    labels: ['Électronique', 'Vêtements', 'Alimentation', 'Maison'],
+    labels: ['Telephones', 'Laptops', 'Audio', 'Accessoires'],
     datasets: [
       {
         label: 'Produits par catégorie',
-        data: [12, 19, 3, 5],
+        data: [1, 1, 1, 1],
         backgroundColor: [
           'rgba(239, 68, 68, 0.7)',
           'rgba(59, 130, 246, 0.7)',
@@ -184,7 +185,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-
+      <MenuFloat />
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Tableau de Bord</h1>
           <p className="text-gray-600">Bienvenue dans votre espace d'administration</p>
